@@ -1,15 +1,54 @@
-import { DarkTheme, DefaultTheme, ThemeProvider } from 'expo-router';
-import { useColorScheme } from 'react-native';
+import { router, Stack } from "expo-router"
+import { AuthProvider, useAuth } from "@/contexts/AuthContext"
+import { useEffect } from "react"
+import { supabase } from "@/lib/supabase"
 
-import { AnimatedSplashOverlay } from '@/components/animated-icon';
-import AppTabs from '@/components/app-tabs';
-
-export default function TabLayout() {
-  const colorScheme = useColorScheme();
+export default function RootLayout() {
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <AnimatedSplashOverlay />
-      <AppTabs />
-    </ThemeProvider>
-  );
+    <AuthProvider>
+      <MainLayout />
+    </AuthProvider>
+  )
+}
+
+function MainLayout() {
+  const { setAuth } = useAuth()
+
+  useEffect(() => {
+    supabase.auth.onAuthStateChange((_event, session) => {
+
+      if (session) {
+        setAuth(session.user)
+        router.replace("/(panel)/profile/page")
+        return;
+      }
+
+      setAuth(null);
+      router.replace("/(auth)/signin/page")
+    })
+  }, [])
+
+  return (
+    <Stack>
+      <Stack.Screen
+        name="index"
+        options={{ headerShown: false }}
+      />
+
+      <Stack.Screen
+        name="(auth)/signin/page"
+        options={{ headerShown: false }}
+      />
+
+      <Stack.Screen
+        name="(auth)/signup/page"
+        options={{ headerShown: false }}
+      />
+
+      <Stack.Screen
+        name="(panel)/profile/page"
+        options={{ headerShown: false }}
+      />
+    </Stack>
+  )
 }
