@@ -35,6 +35,12 @@
             "imageWidth": 76
           }
         }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Permita que o StageBook acesse suas fotos para escolher a capa do show."
+        }
       ]
     ],
     "experiments": {

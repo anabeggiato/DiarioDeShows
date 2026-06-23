@@ -1,9 +1,11 @@
 import colors from '@/constants/colors';
 import { Show } from '@/services/show.service';
 import { Ionicons } from '@expo/vector-icons';
+import { Image } from 'expo-image';
 import { ReactNode } from 'react';
 import {
   ActivityIndicator,
+  Modal,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -50,11 +52,16 @@ export function ShowListScreen({ children, onAddShow }: ShowListScreenProps) {
 
 type ShowCardProps = {
   show: Show;
+  onPress: () => void;
 };
 
-export function ShowCard({ show }: ShowCardProps) {
+export function ShowCard({ show, onPress }: ShowCardProps) {
   return (
-    <View style={styles.card}>
+    <Pressable style={styles.card} onPress={onPress}>
+      {show.capa ? (
+        <Image source={{ uri: show.capa }} style={styles.coverImage} contentFit="cover" />
+      ) : null}
+
       <View style={styles.cardHeader}>
         <View style={styles.dateBadge}>
           <Text style={styles.dateDay}>{getDateDay(show.data)}</Text>
@@ -66,19 +73,101 @@ export function ShowCard({ show }: ShowCardProps) {
           <Text style={styles.place}>{show.local}</Text>
         </View>
       </View>
+    </Pressable>
+  );
+}
 
-      {show.depoimento ? (
-        <Text style={styles.testimonial} numberOfLines={3}>
-          {show.depoimento}
-        </Text>
-      ) : null}
+type ShowDetailsModalProps = {
+  show: Show | null;
+  visible: boolean;
+  onClose: () => void;
+};
 
-      {show.companhias ? (
-        <View style={styles.metaRow}>
-          <Ionicons name="people-outline" size={16} color={colors.purple} />
-          <Text style={styles.metaText}>{show.companhias}</Text>
+export function ShowDetailsModal({ show, visible, onClose }: ShowDetailsModalProps) {
+  if (!show) {
+    return null;
+  }
+
+  return (
+    <Modal
+      visible={visible}
+      transparent
+      animationType="fade"
+      onRequestClose={onClose}
+    >
+      <View style={styles.modalOverlay}>
+        <View style={styles.detailsCard}>
+          <Pressable style={styles.closeButton} onPress={onClose}>
+            <Ionicons name="close" size={24} color={colors.white} />
+          </Pressable>
+
+          <ScrollView showsVerticalScrollIndicator={false}>
+            {show.capa ? (
+              <Image
+                source={{ uri: show.capa }}
+                style={styles.detailsCover}
+                contentFit="cover"
+              />
+            ) : (
+              <View style={styles.detailsCoverPlaceholder}>
+                <Ionicons name="musical-notes-outline" size={42} color={colors.purple} />
+              </View>
+            )}
+
+            <View style={styles.detailsContent}>
+              <Text style={styles.detailsArtist}>{show.artista}</Text>
+
+              <View style={styles.detailsMeta}>
+                <Ionicons name="calendar-outline" size={18} color={colors.purple} />
+                <Text style={styles.detailsMetaText}>{formatFullDate(show.data)}</Text>
+              </View>
+
+              <View style={styles.detailsMeta}>
+                <Ionicons name="location-outline" size={18} color={colors.purple} />
+                <Text style={styles.detailsMetaText}>{show.local}</Text>
+              </View>
+
+              <DetailSection
+                title="Companhias"
+                icon="people-outline"
+                content={show.companhias}
+              />
+              <DetailSection
+                title="Depoimento"
+                icon="chatbubble-ellipses-outline"
+                content={show.depoimento}
+              />
+              <DetailSection
+                title="Setlist"
+                icon="list-outline"
+                content={show.setlist}
+              />
+            </View>
+          </ScrollView>
         </View>
-      ) : null}
+      </View>
+    </Modal>
+  );
+}
+
+type DetailSectionProps = {
+  title: string;
+  icon: keyof typeof Ionicons.glyphMap;
+  content?: string | null;
+};
+
+function DetailSection({ title, icon, content }: DetailSectionProps) {
+  if (!content) {
+    return null;
+  }
+
+  return (
+    <View style={styles.detailSection}>
+      <View style={styles.detailSectionHeader}>
+        <Ionicons name={icon} size={18} color={colors.purple} />
+        <Text style={styles.detailSectionTitle}>{title}</Text>
+      </View>
+      <Text style={styles.detailSectionText}>{content}</Text>
     </View>
   );
 }
@@ -153,6 +242,16 @@ function getDateMonth(date: string) {
   ];
 
   return months[dateMonth] ?? '---';
+}
+
+function formatFullDate(date: string) {
+  const [year, month, day] = date.split('-').map(Number);
+
+  if (!year || !month || !day) {
+    return date;
+  }
+
+  return new Date(year, month - 1, day).toLocaleDateString('pt-BR');
 }
 
 const styles = StyleSheet.create({
@@ -230,14 +329,21 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.gray,
     borderRadius: 14,
-    padding: 16,
     marginBottom: 14,
     backgroundColor: colors.white,
+    overflow: 'hidden',
+  },
+
+  coverImage: {
+    width: '100%',
+    height: 150,
+    backgroundColor: colors.lightLilac,
   },
 
   cardHeader: {
     flexDirection: 'row',
     alignItems: 'center',
+    padding: 16,
   },
 
   dateBadge: {
@@ -276,23 +382,6 @@ const styles = StyleSheet.create({
   place: {
     color: colors.purple,
     fontSize: 14,
-  },
-
-  testimonial: {
-    color: colors.black,
-    lineHeight: 20,
-    marginTop: 14,
-  },
-
-  metaRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: 14,
-  },
-
-  metaText: {
-    color: colors.purple,
-    marginLeft: 6,
   },
 
   emptyState: {
@@ -341,5 +430,92 @@ const styles = StyleSheet.create({
   stateText: {
     color: colors.purple,
     marginTop: 14,
+  },
+
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.45)',
+    justifyContent: 'center',
+    padding: 22,
+  },
+
+  detailsCard: {
+    maxHeight: '88%',
+    backgroundColor: colors.white,
+    borderRadius: 18,
+    overflow: 'hidden',
+  },
+
+  closeButton: {
+    position: 'absolute',
+    top: 12,
+    right: 12,
+    zIndex: 1,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(0, 0, 0, 0.45)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+
+  detailsCover: {
+    width: '100%',
+    height: 220,
+    backgroundColor: colors.lightLilac,
+  },
+
+  detailsCoverPlaceholder: {
+    height: 180,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.lightLilac,
+  },
+
+  detailsContent: {
+    padding: 20,
+  },
+
+  detailsArtist: {
+    color: colors.black,
+    fontSize: 24,
+    fontWeight: 'bold',
+    marginBottom: 14,
+  },
+
+  detailsMeta: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+
+  detailsMetaText: {
+    color: colors.black,
+    marginLeft: 8,
+    flex: 1,
+  },
+
+  detailSection: {
+    borderTopWidth: 1,
+    borderTopColor: colors.gray,
+    paddingTop: 16,
+    marginTop: 12,
+  },
+
+  detailSectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+
+  detailSectionTitle: {
+    color: colors.purple,
+    fontWeight: 'bold',
+    marginLeft: 8,
+  },
+
+  detailSectionText: {
+    color: colors.black,
+    lineHeight: 21,
   },
 });

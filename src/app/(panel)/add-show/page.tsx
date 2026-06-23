@@ -1,10 +1,11 @@
 import {
+  CoverPickerField,
   DatePickerField,
   FormInput,
   PanelScreen,
   PrimaryButton,
 } from '@/components/panel/ShowFormComponents';
-import { createShow } from '@/services/show.service';
+import { createShow, uploadShowCover } from '@/services/show.service';
 import { router } from 'expo-router';
 import { useState } from 'react';
 import { Alert } from 'react-native';
@@ -16,7 +17,7 @@ export default function CreateShow() {
   const [companions, setCompanions] = useState('');
   const [testimonial, setTestimonial] = useState('');
   const [setlist, setSetlist] = useState('');
-  const [cover, setCover] = useState('');
+  const [cover, setCover] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
   async function handleSave() {
@@ -28,6 +29,8 @@ export default function CreateShow() {
     try {
       setLoading(true);
 
+      const coverUrl = cover ? await uploadShowCover(cover) : '';
+
       await createShow({
         artista: artist.trim(),
         data: formatDateForDatabase(date),
@@ -35,7 +38,7 @@ export default function CreateShow() {
         companhias: companions.trim(),
         depoimento: testimonial.trim(),
         setlist: setlist.trim(),
-        capa: cover.trim(),
+        capa: coverUrl,
       });
 
       Alert.alert('Show salvo', 'Sua memória foi adicionada ao diário.', [
@@ -106,11 +109,10 @@ export default function CreateShow() {
         multiline
       />
 
-      <FormInput
+      <CoverPickerField
         label="Capa"
-        placeholder="Link da imagem de capa"
         value={cover}
-        onChangeText={setCover}
+        onChange={setCover}
       />
 
       <PrimaryButton title="Adicionar show" loading={loading} onPress={handleSave} />

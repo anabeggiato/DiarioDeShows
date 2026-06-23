@@ -1,5 +1,7 @@
 import colors from '@/constants/colors';
 import { Ionicons } from '@expo/vector-icons';
+import { Image } from 'expo-image';
+import * as ImagePicker from 'expo-image-picker';
 import { router } from 'expo-router';
 import { ReactNode, useMemo, useState } from 'react';
 import {
@@ -11,6 +13,7 @@ import {
   TextInput,
   TextInputProps,
   View,
+  Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -70,6 +73,71 @@ export function FormInput({ label, style, ...props }: FormInputProps) {
         placeholderTextColor="#8f8f8f"
         {...props}
       />
+    </View>
+  );
+}
+
+type CoverPickerFieldProps = {
+  label: string;
+  value: string | null;
+  onChange: (imageUri: string | null) => void;
+};
+
+export function CoverPickerField({ label, value, onChange }: CoverPickerFieldProps) {
+  async function handlePickImage() {
+    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+
+    if (!permission.granted) {
+      Alert.alert(
+        'Permissão necessária',
+        'Permita o acesso às fotos para escolher uma capa do show.',
+      );
+      return;
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ['images'],
+      allowsEditing: true,
+      aspect: [16, 9],
+      quality: 0.8,
+    });
+
+    if (result.canceled) {
+      return;
+    }
+
+    onChange(result.assets[0].uri);
+  }
+
+  return (
+    <View style={styles.field}>
+      <Text style={styles.label}>{label}</Text>
+
+      <Pressable style={styles.coverPicker} onPress={handlePickImage}>
+        {value ? (
+          <Image source={{ uri: value }} style={styles.coverImage} contentFit="cover" />
+        ) : (
+          <View style={styles.coverPlaceholder}>
+            <Ionicons name="image-outline" size={30} color={colors.purple} />
+            <Text style={styles.coverTitle}>Selecionar foto</Text>
+            <Text style={styles.coverHint}>Essa imagem será a capa do show</Text>
+          </View>
+        )}
+      </Pressable>
+
+      {value ? (
+        <View style={styles.coverActions}>
+          <Pressable style={styles.secondaryButton} onPress={handlePickImage}>
+            <Ionicons name="swap-horizontal" size={18} color={colors.purple} />
+            <Text style={styles.secondaryButtonText}>Trocar foto</Text>
+          </Pressable>
+
+          <Pressable style={styles.secondaryButton} onPress={() => onChange(null)}>
+            <Ionicons name="trash-outline" size={18} color={colors.purple} />
+            <Text style={styles.secondaryButtonText}>Remover</Text>
+          </Pressable>
+        </View>
+      ) : null}
     </View>
   );
 }
@@ -320,6 +388,63 @@ const styles = StyleSheet.create({
   textArea: {
     minHeight: 96,
     textAlignVertical: 'top',
+  },
+
+  coverPicker: {
+    borderWidth: 1,
+    borderColor: colors.gray,
+    borderRadius: 14,
+    minHeight: 170,
+    overflow: 'hidden',
+    backgroundColor: colors.white,
+  },
+
+  coverImage: {
+    width: '100%',
+    height: 190,
+  },
+
+  coverPlaceholder: {
+    minHeight: 170,
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 18,
+    backgroundColor: colors.lightLilac,
+  },
+
+  coverTitle: {
+    color: colors.purple,
+    fontWeight: 'bold',
+    marginTop: 10,
+  },
+
+  coverHint: {
+    color: colors.black,
+    marginTop: 4,
+    textAlign: 'center',
+  },
+
+  coverActions: {
+    flexDirection: 'row',
+    gap: 10,
+    marginTop: 10,
+  },
+
+  secondaryButton: {
+    flex: 1,
+    borderWidth: 1,
+    borderColor: colors.gray,
+    borderRadius: 8,
+    paddingVertical: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexDirection: 'row',
+  },
+
+  secondaryButtonText: {
+    color: colors.purple,
+    fontWeight: 'bold',
+    marginLeft: 6,
   },
 
   dateInput: {

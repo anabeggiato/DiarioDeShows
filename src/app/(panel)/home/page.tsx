@@ -1,6 +1,7 @@
 import {
   EmptyShows,
   ShowCard,
+  ShowDetailsModal,
   ShowListScreen,
   ShowsError,
   ShowsLoading,
@@ -11,6 +12,7 @@ import { useCallback, useState } from 'react';
 
 export default function Home() {
   const [shows, setShows] = useState<Show[]>([]);
+  const [selectedShow, setSelectedShow] = useState<Show | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
 
@@ -51,12 +53,23 @@ export default function Home() {
       return <EmptyShows onAddShow={handleAddShow} />;
     }
 
-    return shows.map((show) => <ShowCard key={show.id} show={show} />);
+    return shows.map((show) => (
+      <ShowCard
+        key={show.id}
+        show={show}
+        onPress={() => setSelectedShow(show)}
+      />
+    ));
   }
 
   return (
     <ShowListScreen onAddShow={handleAddShow}>
       {renderContent()}
+      <ShowDetailsModal
+        show={selectedShow}
+        visible={Boolean(selectedShow)}
+        onClose={() => setSelectedShow(null)}
+      />
     </ShowListScreen>
   );
 }
