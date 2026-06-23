@@ -5,9 +5,11 @@ import { Image } from 'expo-image';
 import { ReactNode } from 'react';
 import {
   ActivityIndicator,
+  Alert,
   Modal,
   Pressable,
   ScrollView,
+  Share,
   StyleSheet,
   Text,
   View,
@@ -111,6 +113,22 @@ export function ShowDetailsModal({ show, visible, onClose }: ShowDetailsModalPro
     return null;
   }
 
+  const selectedShow = show;
+
+  async function handleShareShow() {
+    try {
+      await Share.share({
+        title: `Minha memória do show de ${selectedShow.artista}`,
+        message: buildShareMessage(selectedShow),
+      });
+    } catch {
+      Alert.alert(
+        'Não foi possível compartilhar',
+        'Tente novamente em alguns segundos.',
+      );
+    }
+  }
+
   return (
     <Modal
       visible={visible}
@@ -165,12 +183,31 @@ export function ShowDetailsModal({ show, visible, onClose }: ShowDetailsModalPro
                 icon="list-outline"
                 content={show.setlist}
               />
+
+              <Pressable style={styles.shareButton} onPress={handleShareShow}>
+                <Ionicons name="share-social-outline" size={19} color={colors.white} />
+                <Text style={styles.shareButtonText}>Compartilhar memória</Text>
+              </Pressable>
             </View>
           </ScrollView>
         </View>
       </View>
     </Modal>
   );
+}
+
+function buildShareMessage(show: Show) {
+  const details = [
+    `Minha memória do show de ${show.artista}`,
+    `Data: ${formatFullDate(show.data)}`,
+    `Local: ${show.local}`,
+    show.companhias ? `Companhias: ${show.companhias}` : null,
+    show.depoimento ? `Depoimento: ${show.depoimento}` : null,
+    show.setlist ? `Setlist: ${show.setlist}` : null,
+    show.capa ? `Foto: ${show.capa}` : null,
+  ].filter(Boolean);
+
+  return details.join('\n\n');
 }
 
 type DetailSectionProps = {
@@ -564,5 +601,21 @@ const styles = StyleSheet.create({
   detailSectionText: {
     color: colors.black,
     lineHeight: 21,
+  },
+
+  shareButton: {
+    backgroundColor: colors.pink,
+    borderRadius: 8,
+    paddingVertical: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexDirection: 'row',
+    marginTop: 18,
+  },
+
+  shareButtonText: {
+    color: colors.white,
+    fontWeight: 'bold',
+    marginLeft: 8,
   },
 });
