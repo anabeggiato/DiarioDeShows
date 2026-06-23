@@ -84,7 +84,32 @@ type CoverPickerFieldProps = {
 };
 
 export function CoverPickerField({ label, value, onChange }: CoverPickerFieldProps) {
-  async function handlePickImage() {
+  async function handleTakePhoto() {
+    const permission = await ImagePicker.requestCameraPermissionsAsync();
+
+    if (!permission.granted) {
+      Alert.alert(
+        'Permissão necessária',
+        'Permita o acesso à câmera para tirar uma foto da capa do show.',
+      );
+      return;
+    }
+
+    const result = await ImagePicker.launchCameraAsync({
+      mediaTypes: ['images'],
+      allowsEditing: true,
+      aspect: [16, 9],
+      quality: 0.8,
+    });
+
+    if (result.canceled) {
+      return;
+    }
+
+    onChange(result.assets[0].uri);
+  }
+
+  async function handlePickFromLibrary() {
     const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
 
     if (!permission.granted) {
@@ -113,31 +138,36 @@ export function CoverPickerField({ label, value, onChange }: CoverPickerFieldPro
     <View style={styles.field}>
       <Text style={styles.label}>{label}</Text>
 
-      <Pressable style={styles.coverPicker} onPress={handlePickImage}>
+      <Pressable style={styles.coverPicker} onPress={handlePickFromLibrary}>
         {value ? (
           <Image source={{ uri: value }} style={styles.coverImage} contentFit="cover" />
         ) : (
           <View style={styles.coverPlaceholder}>
-            <Ionicons name="image-outline" size={30} color={colors.purple} />
-            <Text style={styles.coverTitle}>Selecionar foto</Text>
-            <Text style={styles.coverHint}>Essa imagem será a capa do show</Text>
+            <Ionicons name="camera-outline" size={30} color={colors.purple} />
+            <Text style={styles.coverTitle}>Adicionar foto</Text>
+            <Text style={styles.coverHint}>Use a câmera ou escolha uma imagem da galeria</Text>
           </View>
         )}
       </Pressable>
 
-      {value ? (
-        <View style={styles.coverActions}>
-          <Pressable style={styles.secondaryButton} onPress={handlePickImage}>
-            <Ionicons name="swap-horizontal" size={18} color={colors.purple} />
-            <Text style={styles.secondaryButtonText}>Trocar foto</Text>
-          </Pressable>
+      <View style={styles.coverActions}>
+        <Pressable style={styles.secondaryButton} onPress={handleTakePhoto}>
+          <Ionicons name="camera-outline" size={18} color={colors.purple} />
+          <Text style={styles.secondaryButtonText}>Câmera</Text>
+        </Pressable>
 
+        <Pressable style={styles.secondaryButton} onPress={handlePickFromLibrary}>
+          <Ionicons name="images-outline" size={18} color={colors.purple} />
+          <Text style={styles.secondaryButtonText}>Galeria</Text>
+        </Pressable>
+
+        {value ? (
           <Pressable style={styles.secondaryButton} onPress={() => onChange(null)}>
             <Ionicons name="trash-outline" size={18} color={colors.purple} />
             <Text style={styles.secondaryButtonText}>Remover</Text>
           </Pressable>
-        </View>
-      ) : null}
+        ) : null}
+      </View>
     </View>
   );
 }

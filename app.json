@@ -39,6 +39,7 @@
       [
         "expo-image-picker",
         {
+          "cameraPermission": "Permita que o StageBook acesse a câmera para registrar a capa do show.",
           "photosPermission": "Permita que o StageBook acesse suas fotos para escolher a capa do show."
         }
       ]

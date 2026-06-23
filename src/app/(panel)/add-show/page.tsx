@@ -5,6 +5,7 @@ import {
   PanelScreen,
   PrimaryButton,
 } from '@/components/panel/ShowFormComponents';
+import { scheduleShowReminders } from '@/services/notification.service';
 import { createShow, uploadShowCover } from '@/services/show.service';
 import { router } from 'expo-router';
 import { useState } from 'react';
@@ -41,7 +42,19 @@ export default function CreateShow() {
         capa: coverUrl,
       });
 
-      Alert.alert('Show salvo', 'Sua memória foi adicionada ao diário.', [
+      let scheduledReminders = 0;
+      let reminderFailed = false;
+
+      try {
+        scheduledReminders = await scheduleShowReminders({
+          artist: artist.trim(),
+          date,
+        });
+      } catch {
+        reminderFailed = true;
+      }
+
+      Alert.alert('Show salvo', getSuccessMessage(scheduledReminders, reminderFailed), [
         {
           text: 'OK',
           onPress: () => router.replace('/(panel)/home/page'),
@@ -126,4 +139,16 @@ function formatDateForDatabase(date: Date) {
   const day = String(date.getDate()).padStart(2, '0');
 
   return `${year}-${month}-${day}`;
+}
+
+function getSuccessMessage(scheduledReminders: number, reminderFailed: boolean) {
+  if (reminderFailed) {
+    return 'Sua memória foi adicionada ao diário, mas não foi possível agendar os lembretes.';
+  }
+
+  if (scheduledReminders > 0) {
+    return 'Sua memória foi adicionada ao diário e os lembretes foram agendados.';
+  }
+
+  return 'Sua memória foi adicionada ao diário.';
 }
