@@ -17,9 +17,14 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 type ShowListScreenProps = {
   children: ReactNode;
   onAddShow: () => void;
+  onOpenUpcomingShows?: () => void;
 };
 
-export function ShowListScreen({ children, onAddShow }: ShowListScreenProps) {
+export function ShowListScreen({
+  children,
+  onAddShow,
+  onOpenUpcomingShows,
+}: ShowListScreenProps) {
   return (
     <SafeAreaView style={styles.safeArea} edges={['top']}>
       <ScrollView
@@ -33,9 +38,17 @@ export function ShowListScreen({ children, onAddShow }: ShowListScreenProps) {
               Stage<Text style={styles.logoHighlight}>Book</Text>
             </Text>
 
-            <Pressable style={styles.addIconButton} onPress={onAddShow}>
-              <Ionicons name="add" size={26} color={colors.white} />
-            </Pressable>
+            <View style={styles.headerActions}>
+              {onOpenUpcomingShows ? (
+                <Pressable style={styles.headerIconButton} onPress={onOpenUpcomingShows}>
+                  <Ionicons name="calendar-outline" size={23} color={colors.white} />
+                </Pressable>
+              ) : null}
+
+              <Pressable style={styles.headerIconButton} onPress={onAddShow}>
+                <Ionicons name="add" size={26} color={colors.white} />
+              </Pressable>
+            </View>
           </View>
 
           <Text style={styles.title}>Meus shows</Text>
@@ -44,7 +57,17 @@ export function ShowListScreen({ children, onAddShow }: ShowListScreenProps) {
           </Text>
         </View>
 
-        <View style={styles.content}>{children}</View>
+        <View style={styles.content}>
+          {onOpenUpcomingShows ? (
+            <Pressable style={styles.upcomingButton} onPress={onOpenUpcomingShows}>
+              <Ionicons name="calendar-outline" size={19} color={colors.purple} />
+              <Text style={styles.upcomingButtonText}>Ver próximos shows</Text>
+              <Ionicons name="chevron-forward" size={18} color={colors.purple} />
+            </Pressable>
+          ) : null}
+
+          {children}
+        </View>
       </ScrollView>
     </SafeAreaView>
   );
@@ -293,7 +316,12 @@ const styles = StyleSheet.create({
     color: colors.purple,
   },
 
-  addIconButton: {
+  headerActions: {
+    flexDirection: 'row',
+    gap: 10,
+  },
+
+  headerIconButton: {
     width: 44,
     height: 44,
     borderRadius: 12,
@@ -323,6 +351,25 @@ const styles = StyleSheet.create({
     paddingTop: 30,
     paddingBottom: 40,
     marginTop: -16,
+  },
+
+  upcomingButton: {
+    borderWidth: 1,
+    borderColor: colors.gray,
+    borderRadius: 12,
+    paddingVertical: 14,
+    paddingHorizontal: 14,
+    marginBottom: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.white,
+  },
+
+  upcomingButtonText: {
+    color: colors.purple,
+    fontWeight: 'bold',
+    flex: 1,
+    marginLeft: 8,
   },
 
   card: {

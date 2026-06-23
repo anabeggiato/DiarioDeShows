@@ -40,6 +40,10 @@ export default function Home() {
     router.push('/(panel)/add-show/page');
   }
 
+  function handleOpenUpcomingShows() {
+    router.push('/(panel)/upcoming-shows/page');
+  }
+
   function renderContent() {
     if (loading) {
       return <ShowsLoading />;
@@ -63,7 +67,10 @@ export default function Home() {
   }
 
   return (
-    <ShowListScreen onAddShow={handleAddShow}>
+    <ShowListScreen
+      onAddShow={handleAddShow}
+      onOpenUpcomingShows={handleOpenUpcomingShows}
+    >
       {renderContent()}
       <ShowDetailsModal
         show={selectedShow}

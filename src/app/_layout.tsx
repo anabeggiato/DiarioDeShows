@@ -59,6 +59,11 @@ function MainLayout() {
         name="(panel)/add-show/page"
         options={{ headerShown: false }}
       />
+
+      <Stack.Screen
+        name="(panel)/upcoming-shows/page"
+        options={{ headerShown: false }}
+      />
     </Stack>
   )
 }
