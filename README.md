@@ -108,6 +108,9 @@ Depois disso, fui para a parte de notificações e pensei em duas: uma no dia se
 
 Por fim, implementei o uso da câmera para a capa do show. Como o app já tinha galeria funcionando, foi uma evolução bem natural: agora dá para tirar uma foto na hora ou escolher uma imagem já existente.
 
+## Demosntração
+Clique [aqui](https://youtube.com/shorts/zRBDXCxXZg8?si=m6i9MwKcm3aoUNcb) para acessar o vídeo de demonstração do funcionamento do app
+
 ## Próximos passos
 
 - Interação entre usuários.

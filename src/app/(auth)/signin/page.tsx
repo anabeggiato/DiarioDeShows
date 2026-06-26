@@ -24,7 +24,7 @@ export default function Login() {
     }
 
     setLoading(false);
-    router.replace('/(panel)/profile/page');
+    router.replace('/(panel)/home/page');
   }
 
   return (
